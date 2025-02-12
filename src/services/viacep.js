@@ -43,11 +43,12 @@ function checkForViaCepError (responseObject) {
 
 function extractCepValuesFromResponse (responseObject) {
   return {
-    cep: responseObject.cep.replace('-', ''),
-    state: responseObject.uf,
-    city: responseObject.localidade,
-    neighborhood: responseObject.bairro,
-    street: responseObject.logradouro,
+    cep: responseObject?.cep?.replace('-', ''),
+    state: responseObject?.uf,
+    city: responseObject?.localidade,
+    neighborhood: responseObject?.bairro,
+    street: responseObject?.logradouro,
+    ibge: responseObject?.ibge,
     service: 'viacep'
   }
 }

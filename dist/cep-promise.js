@@ -28,6 +28,55 @@
     }
   }
 
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+
+      if (i % 2) {
+        ownKeys(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  }
+
   function _inherits(subClass, superClass) {
     if (typeof superClass !== "function" && superClass !== null) {
       throw new TypeError("Super expression must either be null or a function");
@@ -471,12 +520,15 @@
   }
 
   function extractCepValuesFromResponse$1(responseObject) {
+    var _responseObject$cep;
+
     return {
-      cep: responseObject.cep.replace('-', ''),
-      state: responseObject.uf,
-      city: responseObject.localidade,
-      neighborhood: responseObject.bairro,
-      street: responseObject.logradouro,
+      cep: responseObject === null || responseObject === void 0 ? void 0 : (_responseObject$cep = responseObject.cep) === null || _responseObject$cep === void 0 ? void 0 : _responseObject$cep.replace('-', ''),
+      state: responseObject === null || responseObject === void 0 ? void 0 : responseObject.uf,
+      city: responseObject === null || responseObject === void 0 ? void 0 : responseObject.localidade,
+      neighborhood: responseObject === null || responseObject === void 0 ? void 0 : responseObject.bairro,
+      street: responseObject === null || responseObject === void 0 ? void 0 : responseObject.logradouro,
+      ibge: responseObject === null || responseObject === void 0 ? void 0 : responseObject.ibge,
       service: 'viacep'
     };
   }
@@ -720,13 +772,27 @@
     var providersServices = getAvailableServices();
 
     if (configurations.providers.length === 0) {
-      return Promise$1.any(Object.values(providersServices).map(function (provider) {
+      return Promise$1.allSettled(Object.values(providersServices).map(function (provider) {
         return provider(cepWithLeftPad, configurations);
-      }));
+      })).then(function (result) {
+        return result.filter(function (r) {
+          return r.status === 'fulfilled';
+        }).reduce(function (acc, _ref) {
+          var curr = _ref.value;
+          return _objectSpread2(_objectSpread2({}, curr), acc);
+        }, {});
+      });
     }
 
-    return Promise$1.any(configurations.providers.map(function (provider) {
+    return Promise$1.allSettled(configurations.providers.map(function (provider) {
       return providersServices[provider](cepWithLeftPad, configurations);
+    }).then(function (result) {
+      return result.filter(function (r) {
+        return r.status === 'fulfilled';
+      }).reduce(function (acc, _ref2) {
+        var curr = _ref2.value;
+        return _objectSpread2(_objectSpread2({}, curr), acc);
+      }, {});
     }));
   }
 
@@ -742,10 +808,10 @@
     throw aggregatedErrors;
   }
 
-  function throwApplicationError$5(_ref) {
-    var message = _ref.message,
-        type = _ref.type,
-        errors = _ref.errors;
+  function throwApplicationError$5(_ref3) {
+    var message = _ref3.message,
+        type = _ref3.type,
+        errors = _ref3.errors;
     throw new CepPromiseError({
       message: message,
       type: type,

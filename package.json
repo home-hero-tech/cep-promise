@@ -15,8 +15,8 @@
     "test-e2e-watch": "mocha --watch test/e2e/**/*.spec.js",
     "lint-check": "standard",
     "lint-fix": "standard --fix",
-    "build-browser": "rollup -c && uglifyjs dist/cep-promise-browser.js -cm -o dist/cep-promise-browser.min.js",
-    "build-node": "rollup -c && uglifyjs dist/cep-promise.js -cm -o dist/cep-promise.min.js",
+    "build-browser": "npx rollup -c && uglifyjs dist/cep-promise-browser.js -cm -o dist/cep-promise-browser.min.js",
+    "build-node": "npx rollup -c && uglifyjs dist/cep-promise.js -cm -o dist/cep-promise.min.js",
     "build": "npm run build-browser && npm run build-node",
     "prepublishOnly": "npm run build"
   },

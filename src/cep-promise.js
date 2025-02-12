@@ -108,14 +108,22 @@ function fetchCepFromServices (cepWithLeftPad, configurations) {
   const providersServices = getAvailableServices()
 
   if (configurations.providers.length === 0) {
-    return Promise.any(
+    return Promise.allSettled(
       Object.values(providersServices).map(provider => provider(cepWithLeftPad, configurations))
-    )
+    ).then(result => {
+      return result.filter(r => r.status === 'fulfilled').reduce((acc, { value: curr }) => {
+        return { ...curr, ...acc };
+      }, {})
+    })
   }
 
-  return Promise.any(
+  return Promise.allSettled(
     configurations.providers.map(provider => {
       return providersServices[provider](cepWithLeftPad, configurations)
+    }).then(result => {
+      return result.filter(r => r.status === 'fulfilled').reduce((acc, { value: curr }) => {
+        return { ...curr, ...acc };
+      }, {})
     })
   )
 }
